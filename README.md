@@ -1,14 +1,33 @@
-# webdriverIO-WebProject-Example
 
-How to Test Run
+# WEBDRIVER IO
+Webdriver IO with page object model , How to css ,xpath,id use ,Assertion,allure report ...
+## tests
+
+Run the following command to run the tests.
+
+**open with terminal:** 
+
+```bash
+  npm run test
+```
+
+Allure report with use 
+
+**open with terminal:** 
+
+```bash
+  allure serve
+```
 
 
-open with terminal
+  
+## Used technologies 
 
-npm run test
+Node ,
+Allure Report ,
+Javascript ,
+Webdriver IO ,
+Mocha Framework ,
+chai 
 
-How to Report Generate
-
-open with terminal 
-
-allure serve
+  
