@@ -1,3 +1,5 @@
+
+
 exports.config = {
     //
     // ====================
@@ -21,7 +23,12 @@ exports.config = {
     // will be called from there.
     //
     specs: [
-        './test/specs/**/*.js'
+        //'./test/specs/**/*.js'
+       /*  './test/specs/searchTest.js',
+        './test/specs/example.e2e.js', */
+        //'./test/specs/deneme.js'
+        './test/specs/demo2.js'
+        //'./test/specs/example.e2e.js'
     ],
     // Patterns to exclude.
     exclude: [
@@ -56,7 +63,7 @@ exports.config = {
         // 5 instances get started at a time.
         maxInstances: 5,
         //
-        browserName: 'chrome',
+        browserName: 'chrome', //firefox
         acceptInsecureCerts: true
         // If outputDir is provided WebdriverIO can capture driver session logs
         // it is possible to configure which logTypes to include/exclude.
@@ -110,7 +117,7 @@ exports.config = {
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
-    services: ['chromedriver'],
+    services: ['selenium-standalone'],
     
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
@@ -132,7 +139,16 @@ exports.config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec',['allure', {outputDir: 'allure-results'}]],
+    reporters: [
+        [
+            'allure', 
+            {
+                outputDir: 'allure-results',
+                disableWebdriverStepsReporting: true,
+                disableWebdriverScreenshotsReporting: false
+            }
+        ]
+    ],
 
 
     
@@ -142,6 +158,7 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000
+        //timeout: process.env.DEBUG === 'true' ? 99999 : 60000
     },
     //
     // =====
@@ -213,8 +230,13 @@ exports.config = {
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    // beforeTest: function (test, context) {
-    // },
+    
+     beforeTest:async function (test, context) {
+        //var url = "https://testapi.macfit.com.tr/login";
+
+        //await browser.url(url);
+        browser.maximizeWindow();
+    },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
@@ -238,12 +260,37 @@ exports.config = {
      * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: async function(test, context, { error, result, duration, passed, retries }) {
-        if (!passed) {
+        if (passed) {
+            await console.log("**********PASSED**********")
             await browser.takeScreenshot();
         }
+        else {
+            await console.log("**********FAILED**********")
+            await browser.takeScreenshot();
+        }   
+        await browser.closeWindow()
     },
 
+    onComplete: function() {
+        const reportError = new Error('Could not generate Allure report')
+        const generation = allure(['generate', 'allure-results', '--clean'])
+        return new Promise((resolve, reject) => {
+            const generationTimeout = setTimeout(
+                () => reject(reportError),
+                15000)
 
+            generation.on('exit', function(exitCode) {
+                clearTimeout(generationTimeout)
+
+                if (exitCode !== 0) {
+                    return reject(reportError)
+                }
+
+                console.log('Allure report successfully generated')
+                resolve()
+            })
+        })
+    }
     /**
      * Hook that gets executed after the suite has ended
      * @param {Object} suite suite details
